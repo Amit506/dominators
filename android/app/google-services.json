@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "79956230515",
+    "project_id": "dominators-50608",
+    "storage_bucket": "dominators-50608.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79956230515:android:3cc165d86f383c9fc14506",
+        "android_client_info": {
+          "package_name": "com.amitkumar.dominators"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "79956230515-3t686n5qdg9quikdn61e3civtn8ho7s3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQyxkF0ti484VZbiYursfybcXFAogfJLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "79956230515-3t686n5qdg9quikdn61e3civtn8ho7s3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

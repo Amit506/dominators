@@ -1,0 +1,25 @@
+ CardWidget(name: name,),
+                      CardWidget(relationshipStatus: relationshipStatus,),
+                      CardWidget(gender: gender,),
+                      CardWidget(dob: dob),
+                      CardWidget(profession: profession,),
+
+ Text('$hour:$minute:$second',style: TextStyle(fontSize: 9)
+
+
+
+  AnimationController animateController;
+
+  Animation animation;
+
+  void initState() {
+    super.initState();
+    animateController = AnimationController(
+      duration: Duration(seconds: 1),
+      vsync: this,
+    );
+    animation =
+        CurvedAnimation(parent: animateController, curve: Curves.decelerate);
+    animateController.forward();
+    animateController.addListener(() {});
+  }
