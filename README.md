@@ -2,11 +2,8 @@
 
 A new Flutter project named dominators integrated with firebase .
 
-![Screenshot_2021-02-04-15-21-32-72_539aeea552dc26a17385652fab79cab8](https://user-images.githubusercontent.com/65785786/107112227-05f35a80-687c-11eb-875e-9dbeafbc1de5.png)
-![Screenshot_2021-02-04-15-23-28-97_539aeea552dc26a17385652fab79cab8](https://user-images.githubusercontent.com/65785786/107112273-5b2f6c00-687c-11eb-9de8-bb37ddc9baeb.png)
-![Screenshot_2021-02-04-15-22-58-52_539aeea552dc26a17385652fab79cab8](https://user-images.githubusercontent.com/65785786/107112303-b19caa80-687c-11eb-8779-c79e2be88d9d.png)
-![Screenshot_2021-02-04-15-23-20-79_539aeea552dc26a17385652fab79cab8](https://user-images.githubusercontent.com/65785786/107112327-cb3df200-687c-11eb-945d-e3e076f89ff0.png)
-![Screenshot_2021-02-04-15-22-25-96_539aeea552dc26a17385652fab79cab8](https://user-images.githubusercontent.com/65785786/107112343-eb6db100-687c-11eb-8a33-87a109594672.png)
+![PicsArt_02-16-02 08 42](https://user-images.githubusercontent.com/65785786/107991939-aa546a00-6ffd-11eb-9bfd-96da9bc1f1b1.jpg)
+
 
 
 
