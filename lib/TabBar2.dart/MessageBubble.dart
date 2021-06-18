@@ -7,18 +7,13 @@ class MessageBubble extends StatelessWidget {
   final String name;
 
   final time;
-  MessageBubble(
-      {this.sender,
-      this.text,
-      this.isMe,
-      this.name,
-      this.time});
+  MessageBubble({this.sender, this.text, this.isMe, this.name, this.time});
 
   @override
   Widget build(BuildContext context) {
     final minute = DateTime.parse(time).minute.toString();
     final second = DateTime.parse(time).second.toString();
-    final hour =DateTime.parse(time).hour.toString();
+    final hour = DateTime.parse(time).hour.toString();
     return Padding(
       padding: EdgeInsets.all(10.0),
       child: Column(
@@ -32,7 +27,6 @@ class MessageBubble extends StatelessWidget {
               color: Colors.black26,
             ),
           ),
-        
           Material(
             borderRadius: isMe
                 ? BorderRadius.only(
@@ -49,16 +43,24 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.all(10.0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                 crossAxisAlignment: CrossAxisAlignment.baseline,     // to get elements of row on the baseline 
-                    textBaseline: TextBaseline.alphabetic, 
-              
-                
-   children: [
-     Text(text,style:TextStyle(fontSize: 16,),),
-     SizedBox(width:11),
-      Text('$minute:$second:$hour',style: TextStyle(fontSize: 6),),
-      
-   ],
+                crossAxisAlignment: CrossAxisAlignment
+                    .baseline, // to get elements of row on the baseline
+                textBaseline: TextBaseline.alphabetic,
+
+                children: [
+                  Flexible(
+                      child: Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  )),
+                  SizedBox(width: 11),
+                  Text(
+                    '$minute:$second:$hour',
+                    style: TextStyle(fontSize: 6),
+                  ),
+                ],
               ),
             ),
           ),

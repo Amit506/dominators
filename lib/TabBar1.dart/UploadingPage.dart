@@ -18,8 +18,8 @@ class _UploadingPageState extends State<UploadingPage> {
   StorageDataBase storageDataBase = StorageDataBase();
   FirebaseAuth _auth = FirebaseAuth.instance;
   File _image;
-  
-   final messageTextController = TextEditingController();
+
+  final messageTextController = TextEditingController();
   String postText;
   bool progressIndicator = false;
 
@@ -33,7 +33,7 @@ class _UploadingPageState extends State<UploadingPage> {
     var permissionRequest = await Permission.photos.status;
     if (permissionRequest.isGranted) {
       image = await picker.getImage(source: ImageSource.gallery);
-     
+
       File file = File(image.path);
 
       setState(() {
@@ -46,30 +46,43 @@ class _UploadingPageState extends State<UploadingPage> {
   }
 
   Future postImageWithText() async {
-    var userid = _auth.currentUser.uid;
-    var name = await StorageDataBase(uid: userid).userName();
-    final time = now.toString();
-     
-         final timeStamp =FieldValue.serverTimestamp();
-    var profilePic =
-        await StorageDataBase(uid: _auth.currentUser.uid).profilePic();
+    try {
+      var userid = _auth.currentUser.uid;
+      var name = await StorageDataBase(uid: userid).userName();
+      final time = now.toString();
 
-    if (postText == null) {
-      for (var images in files) {
-        await StorageDataBase(uid: userid)
-            .uploadImage(images, name.toString(), time, profilePic,timeStamp);
-      }
-    }
-    if (postText != null) {
-      if (files.isEmpty) {
-        print(postText.toString());
-        await StorageDataBase(uid: userid)
-            .uploadStatusText(postText, name, time, profilePic,timeStamp);
-      } else {
+      final timeStamp = FieldValue.serverTimestamp();
+      var profilePic =
+          await StorageDataBase(uid: _auth.currentUser.uid).profilePic();
+
+      if (postText == null) {
         for (var images in files) {
-          await StorageDataBase(uid: userid).uploadImageWithpostText(
-              images, name.toString(), postText, time, profilePic,timeStamp);
+          await StorageDataBase(uid: userid).uploadImage(
+              images, name.toString(), time, profilePic, timeStamp);
         }
+      }
+      if (postText != null) {
+        if (files.isEmpty) {
+          print(postText.toString());
+          await StorageDataBase(uid: userid)
+              .uploadStatusText(postText, name, time, profilePic, timeStamp);
+        } else {
+          for (var images in files) {
+            await StorageDataBase(uid: userid).uploadImageWithpostText(
+                images, name.toString(), postText, time, profilePic, timeStamp);
+          }
+        }
+      }
+      if (mounted) {
+        setState(() {
+          progressIndicator = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          progressIndicator = false;
+        });
       }
     }
   }
@@ -109,12 +122,10 @@ class _UploadingPageState extends State<UploadingPage> {
                   child: files.length.toString() == '0'
                       ? Container(
                           height: 70,
-                          
                           child: Column(
-                           
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(right:10.0),
+                                padding: const EdgeInsets.only(right: 10.0),
                                 child: IconButton(
                                     icon: Icon(
                                       Icons.add,
@@ -124,7 +135,7 @@ class _UploadingPageState extends State<UploadingPage> {
                                       await getImage();
                                     }),
                               ),
-                                  SizedBox(height:6),
+                              SizedBox(height: 6),
                               Text('Add photo')
                             ],
                           ),
@@ -136,25 +147,21 @@ class _UploadingPageState extends State<UploadingPage> {
                           itemCount: files.length + 1,
                           itemBuilder: (context, index) {
                             if (index == 0) {
-                              return progressIndicator
-                                  ? CircularProgressIndicator()
-                                  : Container(
-                                      
-                                      child: IconButton(
-                                          
-                                          icon: Icon(
-                                            Icons.add,
-                                          ),
-                                          onPressed: () async {
-                                            setState(() {
-                                              progressIndicator = true;
-                                            });
-                                            await getImage();
-                                            setState(() {
-                                              progressIndicator = false;
-                                            });
-                                          }),
-                                    );
+                              Container(
+                                child: IconButton(
+                                    icon: Icon(
+                                      Icons.add,
+                                    ),
+                                    onPressed: () async {
+                                      setState(() {
+                                        progressIndicator = true;
+                                      });
+                                      await getImage();
+                                      setState(() {
+                                        progressIndicator = false;
+                                      });
+                                    }),
+                              );
                             } else {
                               print('done!!');
                               print(files[index - 1]);
@@ -163,7 +170,7 @@ class _UploadingPageState extends State<UploadingPage> {
                                     vertical: 5, horizontal: 2),
                                 child: Image.file(
                                   files[index - 1],
-                                  fit: BoxFit.fill,
+                                  fit: BoxFit.cover,
                                 ),
                               );
                             }
@@ -172,18 +179,22 @@ class _UploadingPageState extends State<UploadingPage> {
               SizedBox(
                 height: 15,
               ),
+              progressIndicator ? CircularProgressIndicator() : SizedBox(),
               RaisedButton(
                   child: Text('Post'),
                   onPressed: () async {
-                     messageTextController.clear();
+                    setState(() {
+                      progressIndicator = true;
+                    });
+                    messageTextController.clear();
                     await postImageWithText();
                     ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 2),
-            content: const Text('uploaded sucesfully'),
-          ),
-        );
-        Navigator.pop(context);
+                      SnackBar(
+                        duration: Duration(seconds: 2),
+                        content: const Text('uploaded sucesfully'),
+                      ),
+                    );
+                    Navigator.pop(context);
                   }),
             ]),
           ),

@@ -1,7 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dominators/StorageDataBase.dart/database.dart';
+import 'package:dominators/save_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dominators/TabBar1.dart/PostContainer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../main.dart';
 
 bool check = false;
 
@@ -14,21 +19,23 @@ class TabBar1 extends StatefulWidget {
 
 class _TabBar1State extends State<TabBar1> {
   final _firestore = FirebaseFirestore.instance;
-
+  final StorageDataBase storageDataBase = StorageDataBase();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       resizeToAvoidBottomInset: false,
-            resizeToAvoidBottomPadding: false,
-          body: Container(
+      resizeToAvoidBottomInset: false,
+      body: Container(
         height: MediaQuery.of(context).size.height,
         child: SingleChildScrollView(
           child: Column(
             children: [
               PostContainer(),
               StreamBuilder<QuerySnapshot>(
-                stream: _firestore.collection('Posts').orderBy('timestamp').snapshots(),
+                stream: _firestore
+                    .collection('Posts')
+                    .orderBy('timestamp')
+                    .snapshots(),
                 builder: (context, snapshot) {
                   List<ShowPostContainer> postWidgets = [];
 
@@ -45,47 +52,82 @@ class _TabBar1State extends State<TabBar1> {
 
                   for (var post in posts) {
                     DateTime time = DateTime.parse(post['time'].toString());
-                    
-                    
 
                     final senderName = post['name'];
                     final profilePic = post['profilePic'];
+                    final likes = post['likes'];
 
-                    if (post.data().containsKey('postText')) {
-                      if (post.data().containsKey('url')) {
+                    final notified = post['notified'];
+
+                    if ((post.data() as Map).containsKey('postText')) {
+                      if ((post.data() as Map).containsKey('url')) {
                         final postText = post['postText'];
                         final postUrl = post['url'];
+
                         final postWidget = ShowPostContainer(
                           src: postUrl,
                           text: postText,
+                          docId: post.id,
                           dateTime: time,
-                         
+                          likeCallBack: (val) async {
+                            val++;
+
+                            await storageDataBase.like(post.id, val);
+                            setState(() {});
+                          },
+                          likes: likes,
                           name: senderName.toString(),
                           profileUrl: profilePic,
                         );
                         postWidgets.add(postWidget);
+                        if (!notified) {
+                          showPicNotification(senderName, "", postUrl,
+                              postUrl.hashCode.toString());
+                          storageDataBase.updateNotifyPost(post.id);
+                        }
                       }
                     }
-                    if (post.data().containsKey('postedText')) {
+                    if ((post.data() as Map).containsKey('postedText')) {
                       final postText = post['postedText'];
                       final postWidget = ShowPostContainer(
                           src: 'null',
                           text: postText,
+                          docId: post.id,
+                          likes: likes,
                           dateTime: time,
+                          likeCallBack: (val) async {
+                            val++;
+                            print('pressed' + val.toString());
+                            await storageDataBase.like(post.id, val);
+                            setState(() {});
+                          },
                           name: senderName.toString(),
                           profileUrl: profilePic);
                       postWidgets.add(postWidget);
                     }
-                    if (post.data().containsKey('url') &&
-                        !post.data().containsKey('postText')) {
+                    if ((post.data() as Map).containsKey('url') &&
+                        !(post.data() as Map).containsKey('postText')) {
                       final postUrl = post['url'];
                       final postWidget = ShowPostContainer(
                           src: postUrl,
                           text: 'null',
-                           dateTime: time,
+                          docId: post.id,
+                          dateTime: time,
+                          likes: likes,
+                          likeCallBack: (val) async {
+                            val++;
+                            print('pressed' + val.toString());
+                            await storageDataBase.like(post.id, val);
+                            setState(() {});
+                          },
                           name: senderName.toString(),
                           profileUrl: profilePic);
                       postWidgets.add(postWidget);
+                      if (!notified) {
+                        showPicNotification(senderName, "", postUrl,
+                            postUrl.hashCode.toString());
+                        storageDataBase.updateNotifyPost(post.id);
+                      }
                     }
                   }
 
@@ -102,51 +144,78 @@ class _TabBar1State extends State<TabBar1> {
       ),
     );
   }
+
+  showPicNotification(
+      String title, String body, String url, String fileName) async {
+    final String bigPicturePath = await saveImage(url, fileName);
+
+    final bigPictureStyle = BigPictureStyleInformation(
+      FilePathAndroidBitmap(bigPicturePath),
+    );
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails('dominator picture', 'dominatorPicture',
+            'for dominator chat notification',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            styleInformation: bigPictureStyle,
+            showWhen: false);
+
+    NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      2,
+      title,
+      "",
+      platformChannelSpecifics,
+    );
+  }
 }
 
 class ShowPostContainer extends StatelessWidget {
   final src;
   final text;
   final name;
+  final docId;
+  final likes;
   final profileUrl;
   final dateTime;
 
-  ShowPostContainer({this.src, this.text, this.name, this.profileUrl,this.dateTime});
+  final Function(int) likeCallBack;
+
+  ShowPostContainer(
+      {this.src,
+      this.text,
+      this.likeCallBack,
+      this.likes,
+      this.name,
+      this.profileUrl,
+      this.dateTime,
+      this.docId});
   @override
   Widget build(BuildContext context) {
-    String timeElapsed ;
- final minuteElapsed = now.difference(dateTime).inMinutes;
-                  final secondElapsed =now.difference(dateTime).inSeconds;
-                  final hourElapsed = now.difference(dateTime).inHours;
-                  final daysElapsed = now.difference(dateTime).inDays;
+    String timeElapsed;
+    final minuteElapsed = now.difference(dateTime).inMinutes;
+    final secondElapsed = now.difference(dateTime).inSeconds;
+    final hourElapsed = now.difference(dateTime).inHours;
+    final daysElapsed = now.difference(dateTime).inDays;
 
-if(daysElapsed>0){
-
- timeElapsed=daysElapsed.toString()+' days ago';
-
-}
-else{
-  if(hourElapsed>0){
-    timeElapsed= hourElapsed.toString()+' hours ago';
-  }
-  else{
-    if(minuteElapsed>0){
-      timeElapsed=minuteElapsed.toString()+' minutes ago';
-    }
-    else{
-      if(secondElapsed>0){
-        timeElapsed= secondElapsed.toString()+' seconds ago';
-      
-      }
-        else{
-          timeElapsed ='just now';
+    if (daysElapsed > 0) {
+      timeElapsed = daysElapsed.toString() + ' days ago';
+    } else {
+      if (hourElapsed > 0) {
+        timeElapsed = hourElapsed.toString() + ' hours ago';
+      } else {
+        if (minuteElapsed > 0) {
+          timeElapsed = minuteElapsed.toString() + ' minutes ago';
+        } else {
+          if (secondElapsed > 0) {
+            timeElapsed = secondElapsed.toString() + ' seconds ago';
+          } else {
+            timeElapsed = 'just now';
+          }
         }
+      }
     }
-  }
- 
-}
-
-
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -196,9 +265,10 @@ else{
                           ? SizedBox(
                               height: 10,
                             )
-                          : Flexible(child: Text(text,))
-                      
-                      
+                          : Flexible(
+                              child: Text(
+                              text,
+                            ))
                     ],
                   ),
                 ),
@@ -214,17 +284,48 @@ else{
             ? Container(
                 height: MediaQuery.of(context).size.height * 0.59,
                 width: MediaQuery.of(context).size.width,
-                child: Image.network(src.toString(), fit: BoxFit.cover),
+                child: CachedNetworkImage(
+                  imageUrl: src.toString(),
+                  fit: BoxFit.cover,
+                ),
               )
             : SizedBox(height: 1),
-
-             
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical:5,horizontal: 4),
-                child: Text(timeElapsed,style: TextStyle(fontSize: 10,)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            AnimatedContainer(
+              duration: Duration(milliseconds: 400),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                // crossAxisAlignment: CrossAxisAlignment.baseline,
+                mainAxisSize: MainAxisSize.min,
+                // textBaseline: TextBaseline.alphabetic,
+                children: [
+                  IconButton(
+                      padding: EdgeInsets.all(2.0),
+                      icon: Icon(Icons.thumb_up_alt),
+                      onPressed: () {
+                        likeCallBack(likes);
+                      }),
+                  Text(
+                    'likes ' + likes.toString(),
+                    style: TextStyle(fontSize: 13.0),
+                  ),
+                ],
               ),
-              ),
-        SizedBox(height: 25)
+            ),
+            IconButton(icon: Icon(Icons.comment), onPressed: () {}),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          child: Text(timeElapsed,
+              style: TextStyle(
+                fontSize: 10,
+              )),
+        ),
       ]),
     );
   }

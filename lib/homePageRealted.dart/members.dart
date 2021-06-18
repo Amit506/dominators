@@ -35,12 +35,12 @@ class _MembersState extends State<Members> {
 
                 final members = snapshot.data.docs;
                 for (var member in members) {
-                  final picUrl = member['profileUrl'];
-                  print(picUrl);
+                  // final picUrl = member['profileUrl'];
+                  // print(picUrl);
                   final memberName = member['name'];
                   print(memberName);
                   final memberWidget = MembersContainer(
-                    url: picUrl,
+                    // url: picUrl,
                     name: memberName,
                   );
 
@@ -62,9 +62,8 @@ class MembersContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-     margin: EdgeInsets.symmetric(horizontal:5,vertical:3),
+      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       child: Column(
-        
         children: [
           ListTile(
             leading: CircleAvatar(
